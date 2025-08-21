@@ -1,6 +1,31 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
+// Create a new product
+const createProduct = async (req, res) => {
+  try {
+    const { sku, categoryId, name, description, price, stockLevel, taxRate, images, status } = req.body;
+
+    const product = await prisma.product.create({
+      data: {
+        sku,
+        categoryId,
+        name,
+        description,
+        price: parseFloat(price),
+        stockLevel: stockLevel ? parseInt(stockLevel) : 0,
+        taxRate: taxRate ? parseFloat(taxRate) : 0,
+        images: JSON.stringify(images || []), // store array as JSON
+        status: status || 'active',
+      },
+    });
+
+    res.status(201).json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create product', details: err.message });
+  }
+};
 
 // Get all products
 const getProducts = async (req, res) => {
@@ -8,96 +33,98 @@ const getProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       include: { category: true },
     });
-    res.status(200).json(products);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch products" });
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch products', details: err.message });
   }
 };
 
 // Get product by ID
 const getProductById = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
+    const { id } = req.params;
+
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: parseInt(id) },
       include: { category: true },
     });
-    if (!product) return res.status(404).json({ error: "Product not found" });
-    res.status(200).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch product" });
-  }
-};
 
-// Create product
-const createProduct = async (req, res) => {
-  const { sku, categoryId, name, description, price, stockLevel, taxRate } = req.body;
-  try {
-    const product = await prisma.product.create({
-      data: {
-        sku,
-        categoryId: Number(categoryId),
-        name,
-        description,
-        price: Number(price),
-        stockLevel: stockLevel ? Number(stockLevel) : 0,
-        taxRate: taxRate ? Number(taxRate) : null,
-        status: "active",
-      },
-    });
-    res.status(201).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create product" });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch product', details: err.message });
   }
 };
 
 // Update product
 const updateProduct = async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { sku, categoryId, name, description, price, stockLevel, taxRate, status } = req.body;
   try {
-    const product = await prisma.product.update({
-      where: { id },
+    const { id } = req.params;
+    const { sku, categoryId, name, description, price, stockLevel, taxRate, images, status } = req.body;
+
+    const updatedProduct = await prisma.product.update({
+      where: { id: parseInt(id) },
       data: {
         sku,
-        categoryId: categoryId ? Number(categoryId) : undefined,
+        categoryId,
         name,
         description,
-        price: price ? Number(price) : undefined,
-        stockLevel: stockLevel ? Number(stockLevel) : undefined,
-        taxRate: taxRate ? Number(taxRate) : undefined,
+        price: price ? parseFloat(price) : undefined,
+        stockLevel: stockLevel ? parseInt(stockLevel) : undefined,
+        taxRate: taxRate ? parseFloat(taxRate) : undefined,
+        images: images ? JSON.stringify(images) : undefined,
         status,
       },
     });
-    res.status(200).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update product" });
+
+    res.json(updatedProduct);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update product', details: err.message });
   }
 };
 
-// Delete product (soft delete)
+// Delete product
 const deleteProduct = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
-    const product = await prisma.product.update({
-      where: { id },
-      data: { status: "inactive" },
+    const { id } = req.params;
+
+    await prisma.product.delete({
+      where: { id: parseInt(id) },
     });
-    res.json({ message: "Product soft-deleted", product });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to delete product" });
+
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete product', details: err.message });
+  }
+};
+
+// Get products by category
+const getProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    const products = await prisma.product.findMany({
+      where: { categoryId: parseInt(categoryId) },
+      include: { category: true },
+    });
+
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch products', details: err.message });
   }
 };
 
 module.exports = {
+  createProduct,
   getProducts,
   getProductById,
-  createProduct,
   updateProduct,
   deleteProduct,
+  getProductsByCategory,
 };

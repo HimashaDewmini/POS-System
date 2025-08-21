@@ -1,87 +1,84 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-
-// Get all roles
-const getAllRoles = async (req, res) => {
-  try {
-    const roles = await prisma.role.findMany({
-      include: { users: true },
-    });
-    res.status(200).json(roles);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch roles" });
-  }
-};
-
-// Get role by ID
-const getRoleById = async (req, res) => {
-  const id = parseInt(req.params.id);
-  try {
-    const role = await prisma.role.findUnique({
-      where: { id },
-      include: { users: true },
-    });
-    if (!role) return res.status(404).json({ error: "Role not found" });
-    res.status(200).json(role);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch role" });
-  }
-};
-
-// Create role
+// Create Role
 const createRole = async (req, res) => {
-  const { name, description } = req.body;
-  if (!name) return res.status(400).json({ error: "Role name is required" });
-
   try {
+    const { name, description } = req.body;
+
     const role = await prisma.role.create({
       data: { name, description },
     });
+
     res.status(201).json(role);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create role" });
+    console.error("Error creating role:", error);
+    res.status(500).json({ error: "Failed to create role", details: error.message });
   }
 };
 
-// Update role
-const updateRole = async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { name, description } = req.body;
-
+// Get all Roles
+const getRoles = async (req, res) => {
   try {
-    const role = await prisma.role.update({
-      where: { id },
+    const roles = await prisma.role.findMany({
+      include: { users: true }, // also fetch users in each role
+    });
+    res.json(roles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch roles", details: error.message });
+  }
+};
+
+// Get Role by ID
+const getRoleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const role = await prisma.role.findUnique({
+      where: { id: Number(id) },
+      include: { users: true },
+    });
+
+    if (!role) return res.status(404).json({ error: "Role not found" });
+    res.json(role);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch role", details: error.message });
+  }
+};
+
+// Update Role
+const updateRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const updatedRole = await prisma.role.update({
+      where: { id: Number(id) },
       data: { name, description },
     });
-    res.status(200).json(role);
+
+    res.json(updatedRole);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update role" });
+    res.status(500).json({ error: "Failed to update role", details: error.message });
   }
 };
 
-// Delete role
+// Delete Role
 const deleteRole = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
-    await prisma.role.delete({
-      where: { id },
-    });
-    res.json({ message: "Role deleted" });
+    const { id } = req.params;
+
+    await prisma.role.delete({ where: { id: Number(id) } });
+    res.json({ message: "Role deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to delete role" });
+    res.status(500).json({ error: "Failed to delete role", details: error.message });
   }
 };
 
 module.exports = {
-  getAllRoles,
-  getRoleById,
   createRole,
+  getRoles,
+  getRoleById,
   updateRole,
   deleteRole,
 };

@@ -1,46 +1,66 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-// routers
-const categoryRoutes = require('./routes/categoryRoutes');
-const productRoutes = require('./routes/productRoutes');
-const saleRoutes = require('./routes/saleRoutes');
-const customerRoutes = require('./routes/customerRoutes');
-const receiptRoutes = require('./routes/receiptRoutes');
-const reportRoutes = require('./routes/reportRoutes');
-const roleRoutes = require('./routes/roleRoutes');
-const saleItemRoutes = require('./routes/saleItemRoutes');
-const userRoutes = require('./routes/userRoutes');
-
+// Routers
+const categoryRoutes = require('./routers/categoryRoutes');
+const productRoutes = require('./routers/productRoutes');
+const saleRoutes = require('./routers/saleRoutes');
+const customerRoutes = require('./routers/customerRoutes');
+const receiptRoutes = require('./routers/receiptRoutes');
+const reportRoutes = require('./routers/reportRoutes');
+const roleRoutes = require('./routers/roleRoutes');
+const saleItemRoutes = require('./routers/saleItemRoutes');
+const userRoutes = require('./routers/userRoutes');
+const promotionRoutes = require('./routers/promotionRoutes'); 
 
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-app.use(cors(
-    {
-        origin: '*', 
-        methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-        allowedHeaders: ['Content-Type', 'Authorization'] 
-    }
-));
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// static file serving
+
+// Static file serving (for uploads like product images, receipts, etc.)
 app.use('/uploads', express.static('./uploads'));
 
-// routes
-app.use('/api', categoryRoutes);
-app.use('/api', productRoutes);
-app.use('/api', saleRoutes);
-app.use('/api', customerRoutes);
-app.use('/api', receiptRoutes);
-app.use('/api', reportRoutes);
-app.use('/api', roleRoutes);
-app.use('/api', saleItemRoutes);
-app.use('/api', userRoutes);
 
-app.listen(port,()=>{
-    console.log(`Server running on ${port}`);
-})
+
+// Routes
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/sales', saleRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/receipts', receiptRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/sale-items', saleItemRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/promotions', promotionRoutes);
+
+// Default 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Default error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.stack || err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    details: err.message || 'Unexpected error'
+  });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

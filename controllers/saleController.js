@@ -1,113 +1,107 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-
-// Create a Sale
+// Create a new sale
 const createSale = async (req, res) => {
-  const { userId, customerId, total, discount, tax, paymentType, status, items } = req.body;
-
-  if (!userId || !total || !paymentType || !items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'Missing required fields or items' });
-  }
-
   try {
+    const { userId, customerId, total, discount, tax, status, items } = req.body;
+
     const sale = await prisma.sale.create({
       data: {
-        userId: Number(userId),
-        customerId: customerId ? Number(customerId) : null,
-        total: Number(total),
-        discount: discount ? Number(discount) : 0,
-        tax: tax ? Number(tax) : 0,
-        paymentType,
-        status: status || 'completed',
+        userId,
+        customerId,
+        total,
+        discount,
+        tax,
+        status,
         items: {
-          create: items.map(item => ({
-            productId: Number(item.productId),
-            quantity: Number(item.quantity),
-            price: Number(item.price),
-          })),
+          create: items, // items should be an array of { productId, quantity, price }
         },
       },
-      include: { items: true, customer: true, user: true, receipts: true },
+      include: {
+        items: true,
+      },
     });
 
     res.status(201).json(sale);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to create sale' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create sale', details: err.message });
   }
 };
 
-// Get all Sales
+// Get all sales
 const getSales = async (req, res) => {
   try {
     const sales = await prisma.sale.findMany({
-      include: { items: true, customer: true, user: true, receipts: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    res.status(200).json(sales);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch sales' });
-  }
-};
-
-// Get Sale by ID
-const getSaleById = async (req, res) => {
-  const id = Number(req.params.id);
-
-  try {
-    const sale = await prisma.sale.findUnique({
-      where: { id },
-      include: { items: true, customer: true, user: true, receipts: true },
-    });
-
-    if (!sale) return res.status(404).json({ error: 'Sale not found' });
-    res.status(200).json(sale);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch sale' });
-  }
-};
-
-// Update Sale
-const updateSale = async (req, res) => {
-  const id = Number(req.params.id);
-  const { total, discount, tax, paymentType, status } = req.body;
-
-  try {
-    const sale = await prisma.sale.update({
-      where: { id },
-      data: {
-        total: total ? Number(total) : undefined,
-        discount: discount ? Number(discount) : undefined,
-        tax: tax ? Number(tax) : undefined,
-        paymentType,
-        status,
+      include: {
+        items: true,
+        user: true,
+        customer: true,
+        receipts: true,
+        payments: true,
       },
     });
-
-    res.status(200).json(sale);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to update sale' });
+    res.json(sales);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch sales', details: err.message });
   }
 };
 
-// Delete Sale 
-const deleteSale = async (req, res) => {
-  const id = Number(req.params.id);
-
+// Get sale by ID
+const getSaleById = async (req, res) => {
   try {
-    const sale = await prisma.sale.update({
-      where: { id },
-      data: { status: 'cancelled' },
+    const { id } = req.params;
+    const sale = await prisma.sale.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        items: true,
+        user: true,
+        customer: true,
+        receipts: true,
+        payments: true,
+      },
+    });
+    if (!sale) return res.status(404).json({ error: 'Sale not found' });
+    res.json(sale);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch sale', details: err.message });
+  }
+};
+
+// Update sale (total, discount, tax, status)
+const updateSale = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { total, discount, tax, status } = req.body;
+
+    const updatedSale = await prisma.sale.update({
+      where: { id: parseInt(id) },
+      data: { total, discount, tax, status },
     });
 
-    res.status(200).json({ message: 'Sale cancelled', sale });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to cancel sale' });
+    res.json(updatedSale);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update sale', details: err.message });
+  }
+};
+
+// Delete sale
+const deleteSale = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.sale.delete({
+      where: { id: parseInt(id) },
+    });
+
+    res.json({ message: 'Sale deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete sale', details: err.message });
   }
 };
 

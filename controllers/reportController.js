@@ -1,7 +1,5 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
-
-
 // Get all reports
 const getReports = async (req, res) => {
   try {
@@ -11,7 +9,7 @@ const getReports = async (req, res) => {
     });
     res.status(200).json(reports);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching reports:", error);
     res.status(500).json({ error: "Failed to fetch reports" });
   }
 };
@@ -27,7 +25,7 @@ const getReportById = async (req, res) => {
     if (!report) return res.status(404).json({ error: "Report not found" });
     res.status(200).json(report);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching report:", error);
     res.status(500).json({ error: "Failed to fetch report" });
   }
 };
@@ -49,7 +47,7 @@ const createReport = async (req, res) => {
     });
     res.status(201).json(report);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating report:", error);
     res.status(500).json({ error: "Failed to create report" });
   }
 };
@@ -68,7 +66,7 @@ const updateReport = async (req, res) => {
     });
     res.status(200).json(report);
   } catch (error) {
-    console.error(error);
+    console.error("Error updating report:", error);
     res.status(500).json({ error: "Failed to update report" });
   }
 };
@@ -82,7 +80,7 @@ const deleteReport = async (req, res) => {
     });
     res.json({ message: "Report deleted", report });
   } catch (error) {
-    console.error(error);
+    console.error("Error deleting report:", error);
     res.status(500).json({ error: "Failed to delete report" });
   }
 };
