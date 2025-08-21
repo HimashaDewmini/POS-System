@@ -1,4 +1,6 @@
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('../generated/prisma');
+const prisma = new PrismaClient();
+
 
 // Get all reports
 const getReports = async (req, res) => {
