@@ -9,10 +9,11 @@ const {
 
 const router = express.Router();
 
-router.get('/', getSaleItems);
-router.get('/:id', getSaleItemById);
-router.post('/', createSaleItem);
-router.put('/:id', updateSaleItem);
-router.delete('/:id', deleteSaleItem);
+// CRUD routes
+router.post('/', createSaleItem);      
+router.get('/', getSaleItems);         
+router.get('/:id', getSaleItemById);  
+router.put('/:id', updateSaleItem);     
+router.delete('/:id', deleteSaleItem);  
 
 module.exports = router;

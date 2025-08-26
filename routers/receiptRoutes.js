@@ -1,17 +1,18 @@
 const express = require('express');
 const {
+  createReceipt,
   getReceipts,
   getReceiptById,
-  createReceipt,
   updateReceipt,
   deleteReceipt
 } = require('../controllers/receiptController');
 
 const router = express.Router();
 
+// CRUD routes
+router.post('/', createReceipt);
 router.get('/', getReceipts);
 router.get('/:id', getReceiptById);
-router.post('/', createReceipt);
 router.put('/:id', updateReceipt);
 router.delete('/:id', deleteReceipt);
 

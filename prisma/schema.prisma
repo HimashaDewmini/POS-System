@@ -46,14 +46,14 @@ model Customer {
   updatedAt   DateTime @updatedAt
 
   sales      Sale[]
-  promotions Promotion[] // link for sending offers
+  promotions Promotion[] 
 }
 
 model Promotion {
   id         Int       @id @default(autoincrement())
   customerId Int
-  type       String // discount, offer, receipt
-  content    String // message/content of promotion
+  type       String 
+  content    String 
   sentAt     DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -139,7 +139,7 @@ model Receipt {
   saleId    Int
   method    String
   url       String?
-  status    String   @default("active") // soft-delete
+  status    String   @default("active") 
   createdAt DateTime @default(now())
 
   sale Sale @relation(fields: [saleId], references: [id])
@@ -148,10 +148,10 @@ model Receipt {
 model Report {
   id        Int      @id @default(autoincrement())
   userId    Int
-  type      String // daily, weekly, monthly
-  startDate DateTime // for filtering (day/week/month)
+  type      String 
+  startDate DateTime 
   endDate   DateTime
-  data      Json // sales and aggregated info
+  data      Json 
   createdAt DateTime @default(now())
 
   user  User   @relation(fields: [userId], references: [id])

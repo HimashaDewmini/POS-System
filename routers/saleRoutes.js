@@ -10,10 +10,10 @@ const {
 const router = express.Router();
 
 // CRUD routes
-router.post('/', createSale);       // Create sale
-router.get('/', getSales);          // Get all sales
-router.get('/:id', getSaleById);    // Get sale by ID
-router.put('/:id', updateSale);     // Update sale
-router.delete('/:id', deleteSale);  // Delete sale
+router.post('/', createSale);
+router.get('/', getSales);
+router.get('/:id', getSaleById);
+router.put('/:id', updateSale);
+router.delete('/:id', deleteSale);
 
 module.exports = router;

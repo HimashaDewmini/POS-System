@@ -1,93 +1,92 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-// Get all receipts
+// Create Receipt
+const createReceipt = async (req, res) => {
+  try {
+    const { saleId, method, url, status } = req.body;
+
+    const receipt = await prisma.receipt.create({
+      data: { saleId, method, url, status },
+      include: { sale: true },
+    });
+
+    res.status(201).json(receipt);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create receipt', details: err.message });
+  }
+};
+
+// Get All Receipts
 const getReceipts = async (req, res) => {
   try {
     const receipts = await prisma.receipt.findMany({
       include: { sale: true },
-      orderBy: { createdAt: 'desc' },
     });
-    res.status(200).json(receipts);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch receipts" });
+    res.json(receipts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch receipts', details: err.message });
   }
 };
 
-// Get receipt by ID
+// Get Receipt by ID
 const getReceiptById = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
+    const { id } = req.params;
     const receipt = await prisma.receipt.findUnique({
-      where: { id },
+      where: { id: parseInt(id) },
       include: { sale: true },
     });
-    if (!receipt) return res.status(404).json({ error: "Receipt not found" });
-    res.status(200).json(receipt);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch receipt" });
+
+    if (!receipt) return res.status(404).json({ error: 'Receipt not found' });
+    res.json(receipt);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch receipt', details: err.message });
   }
 };
 
-// Create receipt
-const createReceipt = async (req, res) => {
-  const { saleId, url, method } = req.body;
-  if (!saleId || !method) {
-    return res.status(400).json({ error: "Sale ID and method are required" });
-  }
-  try {
-    const receipt = await prisma.receipt.create({
-      data: {
-        saleId: Number(saleId),
-        url: url || null,
-        method,
-      },
-      include: { sale: true },
-    });
-    res.status(201).json(receipt);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create receipt" });
-  }
-};
-
-// Update receipt
+// Update Receipt
 const updateReceipt = async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { url, method } = req.body;
   try {
-    const receipt = await prisma.receipt.update({
-      where: { id },
-      data: { url, method },
+    const { id } = req.params;
+    const { saleId, method, url, status } = req.body;
+
+    const updatedReceipt = await prisma.receipt.update({
+      where: { id: parseInt(id) },
+      data: { saleId, method, url, status },
+      include: { sale: true },
     });
-    res.status(200).json(receipt);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update receipt" });
+
+    res.json(updatedReceipt);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update receipt', details: err.message });
   }
 };
 
-// Delete receipt 
+// Delete Receipt (hard delete)
 const deleteReceipt = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
-    const receipt = await prisma.receipt.update({
-      where: { id },
-      data: { status: "inactive" },
+    const { id } = req.params;
+
+    await prisma.receipt.delete({
+      where: { id: parseInt(id) },
     });
-    res.json({ message: "Receipt soft-deleted", receipt });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to delete receipt" });
+
+    res.json({ message: 'Receipt deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete receipt', details: err.message });
   }
 };
 
 module.exports = {
+  createReceipt,
   getReceipts,
   getReceiptById,
-  createReceipt,
   updateReceipt,
   deleteReceipt,
 };

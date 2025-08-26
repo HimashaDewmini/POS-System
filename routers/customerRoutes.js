@@ -1,12 +1,20 @@
 const express = require('express');
-const router = express.Router();
-const customerController = require('../controllers/customerController');
+const {
+  getCustomers,
+  getCustomerById,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer
+} = require('../controllers/customerController');
 
-// CRUD routes for customers
-router.get('/', customerController.getCustomers);
-router.get('/:id', customerController.getCustomerById);
-router.post('/', customerController.createCustomer);
-router.put('/:id', customerController.updateCustomer);
-router.delete('/:id', customerController.deleteCustomer);
+const router = express.Router();
+
+// CRUD routes
+router.get('/', getCustomers);
+router.get('/:id', getCustomerById);
+router.post('/', createCustomer);
+router.put('/:id', updateCustomer);
+router.delete('/:id', deleteCustomer);
 
 module.exports = router;
+

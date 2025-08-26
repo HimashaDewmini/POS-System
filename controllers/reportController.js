@@ -1,94 +1,171 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
-// Get all reports
+const { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } = require('date-fns');
+
+// Create Report
+const createReport = async (req, res) => {
+  try {
+    const { userId, type, startDate, endDate } = req.body;
+
+    // Fetch sales within date range
+    const sales = await prisma.sale.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+        payments: true,
+        receipts: true,
+      },
+    });
+
+    const report = await prisma.report.create({
+      data: {
+        userId,
+        type,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        data: sales, // save sales details as JSON
+      },
+      include: { user: true, sales: true },
+    });
+
+    res.status(201).json(report);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create report', details: err.message });
+  }
+};
+
+// Get All Reports
 const getReports = async (req, res) => {
   try {
     const reports = await prisma.report.findMany({
-      include: { user: true },
-      orderBy: { createdAt: 'desc' },
+      include: { user: true, sales: true },
     });
-    res.status(200).json(reports);
-  } catch (error) {
-    console.error("Error fetching reports:", error);
-    res.status(500).json({ error: "Failed to fetch reports" });
+    res.json(reports);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch reports', details: err.message });
   }
 };
 
-// Get report by ID
+// Get Report by ID
 const getReportById = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
+    const { id } = req.params;
     const report = await prisma.report.findUnique({
-      where: { id },
-      include: { user: true },
+      where: { id: parseInt(id) },
+      include: { user: true, sales: true },
     });
-    if (!report) return res.status(404).json({ error: "Report not found" });
-    res.status(200).json(report);
-  } catch (error) {
-    console.error("Error fetching report:", error);
-    res.status(500).json({ error: "Failed to fetch report" });
+
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch report', details: err.message });
   }
 };
 
-// Create report
-const createReport = async (req, res) => {
-  const { userId, type, data } = req.body;
-  if (!userId || !type || !data) {
-    return res.status(400).json({ error: "userId, type, and data are required" });
-  }
-  try {
-    const report = await prisma.report.create({
-      data: {
-        userId: Number(userId),
-        type,
-        data: typeof data === "string" ? JSON.parse(data) : data,
-      },
-      include: { user: true },
-    });
-    res.status(201).json(report);
-  } catch (error) {
-    console.error("Error creating report:", error);
-    res.status(500).json({ error: "Failed to create report" });
-  }
-};
-
-// Update report
+// Update Report
 const updateReport = async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { type, data } = req.body;
   try {
-    const report = await prisma.report.update({
-      where: { id },
-      data: {
-        type: type || undefined,
-        data: data ? (typeof data === "string" ? JSON.parse(data) : data) : undefined,
+    const { id } = req.params;
+    const { userId, type, startDate, endDate } = req.body;
+
+    const sales = await prisma.sale.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+        payments: true,
+        receipts: true,
       },
     });
-    res.status(200).json(report);
-  } catch (error) {
-    console.error("Error updating report:", error);
-    res.status(500).json({ error: "Failed to update report" });
+
+    const updatedReport = await prisma.report.update({
+      where: { id: parseInt(id) },
+      data: {
+        userId,
+        type,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        data: sales,
+      },
+      include: { user: true, sales: true },
+    });
+
+    res.json(updatedReport);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update report', details: err.message });
   }
 };
 
-// Delete report
+// Delete Report
 const deleteReport = async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
-    const report = await prisma.report.delete({
-      where: { id },
+    const { id } = req.params;
+    await prisma.report.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Report deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete report', details: err.message });
+  }
+};
+
+// Generate Reports by Day/Week/Month
+const generateReportByCategory = async (req, res) => {
+  try {
+    const { type } = req.params; // day | week | month
+    let startDate, endDate;
+
+    if (type === 'day') {
+      startDate = startOfDay(new Date());
+      endDate = endOfDay(new Date());
+    } else if (type === 'week') {
+      startDate = startOfWeek(new Date());
+      endDate = endOfWeek(new Date());
+    } else if (type === 'month') {
+      startDate = startOfMonth(new Date());
+      endDate = endOfMonth(new Date());
+    } else {
+      return res.status(400).json({ error: 'Invalid report type. Use day, week, or month' });
+    }
+
+    const sales = await prisma.sale.findMany({
+      where: {
+        createdAt: { gte: startDate, lte: endDate },
+      },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+        payments: true,
+        receipts: true,
+      },
     });
-    res.json({ message: "Report deleted", report });
-  } catch (error) {
-    console.error("Error deleting report:", error);
-    res.status(500).json({ error: "Failed to delete report" });
+
+    res.json({
+      type,
+      startDate,
+      endDate,
+      sales,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate categorized report', details: err.message });
   }
 };
 
 module.exports = {
+  createReport,
   getReports,
   getReportById,
-  createReport,
   updateReport,
   deleteReport,
+  generateReportByCategory,
 };
