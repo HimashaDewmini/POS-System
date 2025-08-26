@@ -13,6 +13,9 @@ const roleRoutes = require('./routers/roleRoutes');
 const saleItemRoutes = require('./routers/saleItemRoutes');
 const userRoutes = require('./routers/userRoutes');
 const promotionRoutes = require('./routers/promotionRoutes'); 
+const paymentRoutes = require('./routers/paymentRoutes');
+const settingRoutes = require('./routers/settingRoutes');
+const offlineTransactionRoutes = require('./routers/offlineTransactionRoutes');
 
 
 const app = express();
@@ -29,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// Static file serving (for uploads like product images, receipts, etc.)
+// Static file serving
 app.use('/uploads', express.static('./uploads'));
 
 
@@ -45,6 +48,9 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/sale-items', saleItemRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/promotions', promotionRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/settings', settingRoutes);
+app.use('/api/offline-transactions', offlineTransactionRoutes);
 
 // Default 404 handler
 app.use((req, res, next) => {
