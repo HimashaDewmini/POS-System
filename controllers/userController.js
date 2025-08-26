@@ -3,18 +3,33 @@ const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const BCRYPT_SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
 
-/**
- * Generate JWT Token
- */
+
 const generateToken = (user) => {
   return jwt.sign(
     { userId: user.id, email: user.email, roleId: user.roleId },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: JWT_EXPIRES_IN }
   );
+};
+
+/**
+ * Middleware to protect routes
+ */
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ message: 'Access token required' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Invalid or expired token' });
+    req.user = user;
+    next();
+  });
 };
 
 /**
@@ -24,23 +39,13 @@ const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, roleId, phoneNumber, pin } = req.body;
 
-    // Check if email already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'Email already registered' });
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     const newUser = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        roleId,
-        phoneNumber,
-        pin
-      }
+      data: { firstName, lastName, email, password: hashedPassword, roleId, phoneNumber, pin }
     });
 
     res.status(201).json({
@@ -78,12 +83,11 @@ const loginUser = async (req, res) => {
 
 /**
  * Get All Users
+ * Protected route
  */
 const getUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      include: { role: true }
-    });
+    const users = await prisma.user.findMany({ include: { role: true } });
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -92,6 +96,7 @@ const getUsers = async (req, res) => {
 
 /**
  * Get Single User by ID
+ * Protected route
  */
 const getUserById = async (req, res) => {
   try {
@@ -109,6 +114,7 @@ const getUserById = async (req, res) => {
 
 /**
  * Update User
+ * Protected route
  */
 const updateUser = async (req, res) => {
   try {
@@ -117,21 +123,12 @@ const updateUser = async (req, res) => {
 
     let hashedPassword = undefined;
     if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
+      hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: Number(id) },
-      data: {
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        roleId,
-        phoneNumber,
-        status,
-        pin
-      }
+      data: { firstName, lastName, email, password: hashedPassword, roleId, phoneNumber, status, pin }
     });
 
     res.json({ message: 'User updated successfully', user: updatedUser });
@@ -142,6 +139,7 @@ const updateUser = async (req, res) => {
 
 /**
  * Delete User
+ * Protected route
  */
 const deleteUser = async (req, res) => {
   try {
@@ -159,6 +157,6 @@ module.exports = {
   getUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  authenticateToken
 };
-

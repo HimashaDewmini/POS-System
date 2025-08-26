@@ -1,22 +1,24 @@
 const express = require('express');
-const { 
+const {
     registerUser,
     loginUser,
     getUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    authenticateToken
 } = require('../controllers/userController');
+
 const router = express.Router();
 
-// Auth
+// Public Auth
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 
-// CRUD
-router.get('/', getUsers);
-router.get('/:id', getUserById);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+// Protected CRUD
+router.get('/', authenticateToken, getUsers);
+router.get('/:id', authenticateToken, getUserById);
+router.put('/:id', authenticateToken, updateUser);
+router.delete('/:id', authenticateToken, deleteUser);
 
 module.exports = router;
