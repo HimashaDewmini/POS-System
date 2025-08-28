@@ -17,25 +17,25 @@ const paymentRoutes = require('./routers/paymentRoutes');
 const settingRoutes = require('./routers/settingRoutes');
 const offlineTransactionRoutes = require('./routers/offlineTransactionRoutes');
 
-
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
+// CORS Middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Body parsing middleware
+// Parse JSON bodies
 app.use(express.json());
+
+// Parse URL-encoded bodies (for form submissions, including multer form-data)
 app.use(express.urlencoded({ extended: true }));
 
-
-// Static file serving
+// Static files
 app.use('/uploads', express.static('./uploads'));
-
-
 
 // Routes
 app.use('/api/categories', categoryRoutes);
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Default error handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err.stack || err);
   res.status(500).json({

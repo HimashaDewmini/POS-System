@@ -1,22 +1,34 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
+const path = require('path');
 
 // Create a new product
 const createProduct = async (req, res) => {
   try {
-    const { sku, categoryId, name, description, price, stockLevel, taxRate, images, status } = req.body;
+    // Only Admin or Manager can create
+    if (!['Admin', 'Manager'].includes(req.user.roleName)) {
+      return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+    }
+
+    const { sku = '', categoryId, name = '', description = '', price = 0, stockLevel = 0, taxRate = 0, status = 'active' } = req.body;
+
+    // Handle uploaded images (from multer)
+    let imagePaths = [];
+    if (req.files && req.files.length > 0) {
+      imagePaths = req.files.map(file => `/uploads/${file.filename}`); // store relative path
+    }
 
     const product = await prisma.product.create({
       data: {
         sku,
-        categoryId,
+        categoryId: categoryId ? parseInt(categoryId) : null,
         name,
         description,
         price: parseFloat(price),
-        stockLevel: stockLevel ? parseInt(stockLevel) : 0,
-        taxRate: taxRate ? parseFloat(taxRate) : 0,
-        images: JSON.stringify(images || []), // store array as JSON
-        status: status || 'active',
+        stockLevel: parseInt(stockLevel),
+        taxRate: parseFloat(taxRate),
+        images: JSON.stringify(imagePaths),
+        status,
       },
     });
 
@@ -33,7 +45,13 @@ const getProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       include: { category: true },
     });
-    res.json(products);
+
+    const parsed = products.map(p => ({
+      ...p,
+      images: p.images ? JSON.parse(p.images) : [],
+    }));
+
+    res.json(parsed);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch products', details: err.message });
@@ -52,6 +70,8 @@ const getProductById = async (req, res) => {
 
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
+    product.images = product.images ? JSON.parse(product.images) : [];
+
     res.json(product);
   } catch (err) {
     console.error(err);
@@ -62,23 +82,35 @@ const getProductById = async (req, res) => {
 // Update product
 const updateProduct = async (req, res) => {
   try {
+    // Only Admin or Manager can update
+    if (!['Admin', 'Manager'].includes(req.user.roleName)) {
+      return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+    }
+
     const { id } = req.params;
-    const { sku, categoryId, name, description, price, stockLevel, taxRate, images, status } = req.body;
+    const { sku, categoryId, name, description, price, stockLevel, taxRate, status } = req.body;
+
+    let imagePaths;
+    if (req.files && req.files.length > 0) {
+      imagePaths = req.files.map(file => `/uploads/${file.filename}`);
+    }
 
     const updatedProduct = await prisma.product.update({
       where: { id: parseInt(id) },
       data: {
         sku,
-        categoryId,
+        categoryId: categoryId ? parseInt(categoryId) : undefined,
         name,
         description,
         price: price ? parseFloat(price) : undefined,
         stockLevel: stockLevel ? parseInt(stockLevel) : undefined,
         taxRate: taxRate ? parseFloat(taxRate) : undefined,
-        images: images ? JSON.stringify(images) : undefined,
+        images: imagePaths ? JSON.stringify(imagePaths) : undefined,
         status,
       },
     });
+
+    updatedProduct.images = updatedProduct.images ? JSON.parse(updatedProduct.images) : [];
 
     res.json(updatedProduct);
   } catch (err) {
@@ -90,6 +122,11 @@ const updateProduct = async (req, res) => {
 // Delete product
 const deleteProduct = async (req, res) => {
   try {
+    // Only Admin or Manager can delete
+    if (!['Admin', 'Manager'].includes(req.user.roleName)) {
+      return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+    }
+
     const { id } = req.params;
 
     await prisma.product.delete({
@@ -113,7 +150,12 @@ const getProductsByCategory = async (req, res) => {
       include: { category: true },
     });
 
-    res.json(products);
+    const parsed = products.map(p => ({
+      ...p,
+      images: p.images ? JSON.parse(p.images) : [],
+    }));
+
+    res.json(parsed);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch products', details: err.message });
