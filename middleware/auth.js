@@ -92,7 +92,6 @@ const authorizePaymentAccess = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Admins can access all payments
     if (['Admin'].includes(req.user.roleName)) return next();
 
     const paymentId = parseInt(id, 10);
@@ -104,7 +103,6 @@ const authorizePaymentAccess = async (req, res, next) => {
     const sale = await prisma.sale.findUnique({ where: { id: payment.saleId } });
     if (!sale) return res.status(404).json({ error: 'Associated sale not found' });
 
-    // Only Admins or the cashier who created the sale can access the payment
     if (sale.userId !== req.user.id) {
       return res.status(403).json({ error: 'Access denied: cannot access this payment' });
     }
@@ -116,10 +114,53 @@ const authorizePaymentAccess = async (req, res, next) => {
   }
 };
 
+// Ownership / access check for receipts
+const authorizeReceiptAccess = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (['Admin'].includes(req.user.roleName)) return next();
+
+    const receiptId = parseInt(id, 10);
+    if (isNaN(receiptId)) return res.status(400).json({ error: 'Invalid receipt ID' });
+
+    const receipt = await prisma.receipt.findUnique({ where: { id: receiptId } });
+    if (!receipt) return res.status(404).json({ error: 'Receipt not found' });
+
+    const sale = await prisma.sale.findUnique({ where: { id: receipt.saleId } });
+    if (!sale) return res.status(404).json({ error: 'Associated sale not found' });
+
+    if (req.user.roleName === 'Cashier' && sale.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: cannot access this receipt' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('Receipt Access Error:', err.message);
+    return res.status(500).json({ error: 'Server error while checking receipt access' });
+  }
+};
+
+// RBAC for Offline Transactions
+const authorizeOfflineTransaction = async (req, res, next) => {
+  try {
+    // Admin and Manager can access all offline transactions
+    if (['Admin', 'Manager'].includes(req.user.roleName)) return next();
+
+    // Cashiers cannot access offline transactions
+    return res.status(403).json({ error: 'Access denied: insufficient permissions for offline transactions' });
+  } catch (err) {
+    console.error('Offline Transaction Access Error:', err.message);
+    return res.status(500).json({ error: 'Server error while checking offline transaction access' });
+  }
+};
+
 module.exports = {
   authenticateToken,
   authorizeRoles,
   authorizeProductOwner,
   authorizeSaleAccess,
   authorizePaymentAccess,
+  authorizeReceiptAccess,
+  authorizeOfflineTransaction, // Added for offline transactions
 };

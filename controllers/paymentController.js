@@ -1,17 +1,12 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
-
-// Middleware helper for role check
-const checkRole = (roles, userRole) => roles.includes(userRole);
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 // Create Payment
 const createPayment = async (req, res) => {
   try {
-    const userRole = req.user.roleName; // assume JWT middleware sets req.user
-    if (!checkRole(['Cashier', 'Admin'], userRole)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     let { saleId, method, amount, transactionId, status } = req.body;
 
     if (!saleId || !method || !amount || !status) {
@@ -29,7 +24,31 @@ const createPayment = async (req, res) => {
       include: { sale: true },
     });
 
-    res.status(201).json(payment);
+    // --------- Generate PDF Receipt ---------
+    const receiptsDir = path.join(__dirname, '../receipts');
+    if (!fs.existsSync(receiptsDir)) {
+      fs.mkdirSync(receiptsDir);
+    }
+
+    const pdfPath = path.join(receiptsDir, `receipt_${payment.id}.pdf`);
+    const doc = new PDFDocument();
+    doc.pipe(fs.createWriteStream(pdfPath));
+
+    doc.fontSize(20).text('Payment Receipt', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Receipt ID: ${payment.id}`);
+    doc.text(`Sale ID: ${payment.saleId}`);
+    doc.text(`Payment Method: ${payment.method}`);
+    doc.text(`Amount: ${payment.amount}`);
+    doc.text(`Transaction ID: ${payment.transactionId || 'N/A'}`);
+    doc.text(`Status: ${payment.status}`);
+    doc.text(`Date: ${new Date().toLocaleString()}`);
+    doc.end();
+
+    res.status(201).json({
+      ...payment,
+      receiptUrl: `/receipts/receipt_${payment.id}.pdf`,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create payment', details: err.message });
@@ -39,11 +58,6 @@ const createPayment = async (req, res) => {
 // Get all Payments
 const getPayments = async (req, res) => {
   try {
-    const userRole = req.user.roleName;
-    if (!checkRole(['Admin', 'Manager'], userRole)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     const payments = await prisma.payment.findMany({ include: { sale: true } });
     res.json(payments);
   } catch (err) {
@@ -55,11 +69,6 @@ const getPayments = async (req, res) => {
 // Get Payment by ID
 const getPaymentById = async (req, res) => {
   try {
-    const userRole = req.user.roleName;
-    if (!checkRole(['Admin', 'Manager'], userRole)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     const idNum = parseInt(req.params.id, 10);
     if (Number.isNaN(idNum)) return res.status(400).json({ error: 'Invalid payment ID' });
 
@@ -76,11 +85,6 @@ const getPaymentById = async (req, res) => {
 // Update Payment
 const updatePayment = async (req, res) => {
   try {
-    const userRole = req.user.roleName;
-    if (!checkRole(['Admin'], userRole)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     const idNum = parseInt(req.params.id, 10);
     if (Number.isNaN(idNum)) return res.status(400).json({ error: 'Invalid payment ID' });
 
@@ -110,11 +114,6 @@ const updatePayment = async (req, res) => {
 // Delete Payment
 const deletePayment = async (req, res) => {
   try {
-    const userRole = req.user.roleName;
-    if (!checkRole(['Admin'], userRole)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     const idNum = parseInt(req.params.id, 10);
     if (Number.isNaN(idNum)) return res.status(400).json({ error: 'Invalid payment ID' });
 
