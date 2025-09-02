@@ -72,6 +72,7 @@ const createSale = async (req, res) => {
 const getSales = async (req, res) => {
   try {
     const sales = await prisma.sale.findMany({
+      where: { status: { not: "deleted" } }, // exclude soft deleted
       include: {
         items: true,
         user: true,
@@ -104,7 +105,9 @@ const getSaleById = async (req, res) => {
       },
     });
 
-    if (!sale) return res.status(404).json({ error: 'Sale not found' });
+    if (!sale || sale.status === "deleted") {
+      return res.status(404).json({ error: 'Sale not found' });
+    }
 
     // Ownership check for Cashiers handled by middleware
     res.json(sale);
@@ -139,17 +142,21 @@ const updateSale = async (req, res) => {
   }
 };
 
-// Delete sale (Admin only)
+// Soft Delete sale (Admin only)
 const deleteSale = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: 'Sale ID is required' });
 
-    await prisma.sale.delete({
-      where: { id: parseInt(id) },
+    const saleId = parseInt(id);
+
+    // Soft delete → just update status to "deleted"
+    await prisma.sale.update({
+      where: { id: saleId },
+      data: { status: "deleted" },
     });
 
-    res.json({ message: 'Sale deleted successfully' });
+    res.json({ message: 'Sale soft deleted successfully' });
   } catch (err) {
     console.error('Delete Sale Error:', err);
     res.status(500).json({ error: 'Failed to delete sale', details: err.message });

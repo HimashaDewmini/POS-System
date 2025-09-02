@@ -111,18 +111,22 @@ const updatePayment = async (req, res) => {
   }
 };
 
-// Delete Payment
+// Soft Delete Payment
 const deletePayment = async (req, res) => {
   try {
     const idNum = parseInt(req.params.id, 10);
     if (Number.isNaN(idNum)) return res.status(400).json({ error: 'Invalid payment ID' });
 
-    await prisma.payment.delete({ where: { id: idNum } });
-    res.json({ message: 'Payment deleted successfully' });
+    const payment = await prisma.payment.update({
+      where: { id: idNum },
+      data: { status: 'inactive' }, 
+    });
+
+    res.json({ message: 'Payment soft deleted successfully', payment });
   } catch (err) {
-    console.error(err);
+    console.error('Soft Delete Payment Error:', err);
     if (err.code === 'P2025') return res.status(404).json({ error: 'Payment not found' });
-    res.status(500).json({ error: 'Failed to delete payment', details: err.message });
+    res.status(500).json({ error: 'Failed to soft delete payment', details: err.message });
   }
 };
 

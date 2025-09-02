@@ -139,9 +139,16 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.user.delete({ where: { id: Number(id) } });
-    res.json({ message: 'User deleted successfully' });
+
+    // Instead of deleting, update the status to 'inactive'
+    const user = await prisma.user.update({
+      where: { id: Number(id) },
+      data: { status: 'inactive' },
+    });
+
+    res.json({ message: 'User soft deleted successfully', user });
   } catch (err) {
+    console.error('Soft Delete User Error:', err);
     res.status(500).json({ error: err.message });
   }
 };

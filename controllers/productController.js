@@ -119,7 +119,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// Delete product
+// Soft Delete product
 const deleteProduct = async (req, res) => {
   try {
     // Only Admin or Manager can delete
@@ -129,13 +129,14 @@ const deleteProduct = async (req, res) => {
 
     const { id } = req.params;
 
-    await prisma.product.delete({
+    const product = await prisma.product.update({
       where: { id: parseInt(id) },
+      data: { status: 'inactive' }, 
     });
 
-    res.json({ message: 'Product deleted successfully' });
+    res.json({ message: 'Product soft deleted successfully', product });
   } catch (err) {
-    console.error(err);
+    console.error('Soft Delete Product Error:', err);
     res.status(500).json({ error: 'Failed to delete product', details: err.message });
   }
 };

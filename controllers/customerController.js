@@ -74,19 +74,24 @@ const updateCustomer = async (req, res) => {
   }
 };
 
-// Delete a customer
+// Soft Delete a customer
 const deleteCustomer = async (req, res) => {
   const id = parseInt(req.params.id);
+
   try {
-    const customer = await prisma.customer.delete({
+    // Instead of deleting, update status - inactive
+    const customer = await prisma.customer.update({
       where: { id },
+      data: { status: 'inactive' },
     });
-    res.status(200).json({ message: 'Customer deleted', customer });
+
+    res.status(200).json({ message: 'Customer soft deleted', customer });
   } catch (error) {
-    console.error(error);
+    console.error('Soft Delete Customer Error:', error);
     res.status(500).json({ error: 'Failed to delete customer' });
   }
 };
+
 
 module.exports = {
   getCustomers,

@@ -15,7 +15,7 @@ const router = express.Router();
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, './uploads'), // make sure uploads folder exists
+  destination: (req, file, cb) => cb(null, './uploads'), 
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
@@ -34,7 +34,7 @@ router.put(
   '/:id',
   authenticateToken,
   authorizeRoles('Admin', 'Manager'),
-  authorizeProductOwner, // ownership check
+  authorizeProductOwner, 
   upload.array('images', 5),
   updateProduct
 );
@@ -43,7 +43,7 @@ router.delete(
   '/:id',
   authenticateToken,
   authorizeRoles('Admin', 'Manager'),
-  authorizeProductOwner, // ownership check
+  authorizeProductOwner, 
   deleteProduct
 );
 

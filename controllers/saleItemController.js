@@ -1,10 +1,9 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-/**
- * Helper: Recalculate sale total using its items.
- * Assumes `sale.tax` and `sale.discount` are absolute values (not %).
- */
+//Helper: Recalculate sale total using its items.
+//Assumes `sale.tax` and `sale.discount` are absolute values 
+
 async function recalcSaleTotals(tx, saleId) {
   const sale = await tx.sale.findUnique({
     where: { id: saleId },
@@ -240,7 +239,7 @@ const updateSaleItem = async (req, res) => {
           }
           await tx.product.update({
             where: { id: targetProductId },
-            data: { stockLevel: prod.stockLevel - deltaQty }, 
+            data: { stockLevel: prod.stockLevel - deltaQty },
           });
         }
       } else {
@@ -345,4 +344,4 @@ module.exports = {
   getSaleItemById,
   updateSaleItem,
   deleteSaleItem,
-};
+}
