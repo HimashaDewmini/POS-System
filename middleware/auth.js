@@ -162,5 +162,5 @@ module.exports = {
   authorizeSaleAccess,
   authorizePaymentAccess,
   authorizeReceiptAccess,
-  authorizeOfflineTransaction, // Added for offline transactions
+  authorizeOfflineTransaction, 
 };

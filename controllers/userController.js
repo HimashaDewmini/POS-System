@@ -14,7 +14,7 @@ const generateToken = (user) => {
       userId: user.id,
       email: user.email,
       roleId: user.roleId,
-      roleName: user.role.name, // ✅ roleName included
+      roleName: user.role.name,
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -42,7 +42,7 @@ const authenticateToken = async (req, res, next) => {
       id: user.id,
       email: user.email,
       roleId: user.roleId,
-      roleName: user.role.name, // ✅ used by role-based middleware
+      roleName: user.role.name, 
     };
 
     next();

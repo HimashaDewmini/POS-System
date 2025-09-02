@@ -23,7 +23,7 @@ const createSale = async (req, res) => {
       if (!customer) return res.status(400).json({ error: `Customer ID ${customerId} does not exist` });
       customerId = parseInt(customerId);
     } else {
-      customerId = null; // allow null for walk-in sales
+      customerId = null; 
     }
 
     // Validate each productId

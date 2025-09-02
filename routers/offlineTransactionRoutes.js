@@ -12,16 +12,6 @@ const {
 
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
-/**
- * Routes for Offline Transactions
- * Role-based access according to SRS:
- * - Admin, Cashier, Manager can create
- * - Admin, Manager can view
- * - Admin, Manager can update
- * - Admin can delete
- * - Admin, Manager can mark as synced
- */
-
 // Create offline transaction
 router.post(
   '/',

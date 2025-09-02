@@ -21,9 +21,8 @@ async function recalcSaleTotals(tx, saleId) {
   });
 }
 
-/**
- * Helper: If role is Cashier, ensure they own the sale.
- */
+//Helper: If role is Cashier, ensure they own the sale.
+
 function ensureCashierOwns(reqUser, saleUserId) {
   if (reqUser.roleName === 'Cashier' && reqUser.id !== saleUserId) {
     const err = new Error('Access denied: cannot access items from another user’s sale');
@@ -229,8 +228,7 @@ const updateSaleItem = async (req, res) => {
       }
 
       // STOCK ADJUSTMENTS:
-      // If product unchanged -> adjust by delta qty.
-      // If product changed -> return stock to old product, deduct from new product.
+
       if (targetProductId === existing.productId) {
         const deltaQty = newQty - existing.quantity;
         if (deltaQty !== 0) {
@@ -242,7 +240,7 @@ const updateSaleItem = async (req, res) => {
           }
           await tx.product.update({
             where: { id: targetProductId },
-            data: { stockLevel: prod.stockLevel - deltaQty }, // subtract if +delta, add if -delta
+            data: { stockLevel: prod.stockLevel - deltaQty }, 
           });
         }
       } else {

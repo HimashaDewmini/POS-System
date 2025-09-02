@@ -1,11 +1,9 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-/**
- * Create Offline Transaction
- * Only Admin, Cashier, Manager can create
- * Validates that `data` field exists in the request body
- */
+//Create Offline Transaction
+//Only Admin, Cashier, Manager can create
+ 
 const createOfflineTransaction = async (req, res) => {
   try {
     const { data } = req.body;
@@ -25,10 +23,9 @@ const createOfflineTransaction = async (req, res) => {
   }
 };
 
-/**
- * Get all Offline Transactions
- * Admin and Manager can view all
- */
+//Get all Offline Transactions
+//Admin and Manager can view all
+ 
 const getOfflineTransactions = async (req, res) => {
   try {
     const transactions = await prisma.offlineTransaction.findMany({
@@ -41,9 +38,8 @@ const getOfflineTransactions = async (req, res) => {
   }
 };
 
-/**
- * Get single Offline Transaction by ID
- */
+//Get single Offline Transaction by ID
+
 const getOfflineTransactionById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -62,11 +58,10 @@ const getOfflineTransactionById = async (req, res) => {
   }
 };
 
-/**
- * Update Offline Transaction
- * Admin and Manager can update
- * Can update `data` and `synced` fields
- */
+
+//Update Offline Transaction
+//Admin and Manager can update
+
 const updateOfflineTransaction = async (req, res) => {
   try {
     const { id } = req.params;
@@ -91,10 +86,9 @@ const updateOfflineTransaction = async (req, res) => {
   }
 };
 
-/**
- * Delete Offline Transaction
- * Only Admin can delete
- */
+//Delete Offline Transaction
+//Only Admin can delete
+ 
 const deleteOfflineTransaction = async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,10 +104,9 @@ const deleteOfflineTransaction = async (req, res) => {
   }
 };
 
-/**
- * Mark Offline Transaction as Synced
- * Admin and Manager can mark synced
- */
+// Mark Offline Transaction as Synced
+// Admin and Manager can mark synced
+ 
 const markAsSynced = async (req, res) => {
   try {
     const { id } = req.params;

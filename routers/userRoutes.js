@@ -20,6 +20,6 @@ router.post('/login', loginUser);
 router.get('/', authenticateToken, authorizeRoles('Admin', 'Manager'), getUsers);
 router.get('/:id', authenticateToken, authorizeRoles('Admin', 'Manager'), getUserById);
 router.put('/:id', authenticateToken, authorizeRoles('Admin', 'Manager'), updateUser);
-router.delete('/:id', authenticateToken, authorizeRoles('Admin'), deleteUser); // Only Admin can delete
+router.delete('/:id', authenticateToken, authorizeRoles('Admin'), deleteUser); 
 
 module.exports = router;

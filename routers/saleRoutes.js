@@ -37,7 +37,7 @@ router.get(
   getSaleById
 );
 
-// Manager, Admin → update sale
+// Manager, Admin - update sale
 router.put(
   '/:id',
   authenticateToken,
@@ -45,7 +45,7 @@ router.put(
   updateSale
 );
 
-// Admin only → delete sale
+// Admin only - delete sale
 router.delete(
   '/:id',
   authenticateToken,

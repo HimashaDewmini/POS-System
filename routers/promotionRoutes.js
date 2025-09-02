@@ -10,7 +10,7 @@ const {
 
 const router = express.Router();
 
-// ✅ Order matters: put customer route BEFORE :id
+//Order matters: put customer route BEFORE :id
 router.post('/', createPromotion);
 router.get('/', getPromotions);
 router.get('/customer/:customerId', getPromotionsByCustomer);

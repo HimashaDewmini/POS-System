@@ -30,7 +30,7 @@ const generateReceiptPDF = async (receiptData) => {
   });
 };
 
-// ✅ Create Receipt
+//Create Receipt
 const createReceipt = async (req, res) => {
   try {
     const { saleId, method } = req.body;
@@ -64,7 +64,7 @@ const createReceipt = async (req, res) => {
   }
 };
 
-// ✅ Get All Receipts
+//Get All Receipts
 const getReceipts = async (req, res) => {
   try {
     const { saleId, method, startDate, endDate } = req.query;
@@ -96,7 +96,7 @@ const getReceipts = async (req, res) => {
   }
 };
 
-// ✅ Get Receipt by ID
+//Get Receipt by ID
 const getReceiptById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,7 +119,7 @@ const getReceiptById = async (req, res) => {
   }
 };
 
-// ✅ Update Receipt (Admin only)
+//Update Receipt (Admin only)
 const updateReceipt = async (req, res) => {
   try {
     const { id } = req.params;
@@ -143,7 +143,7 @@ const updateReceipt = async (req, res) => {
   }
 };
 
-// ✅ Soft Delete Receipt (Admin only)
+// Soft Delete Receipt (Admin only)
 const deleteReceipt = async (req, res) => {
   try {
     const { id } = req.params;

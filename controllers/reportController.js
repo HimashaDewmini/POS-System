@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
-// -------------------- CREATE REPORT (Admin only) --------------------
+// CREATE REPORT (Admin only)
 const createReport = async (req, res) => {
   try {
     const user = req.user;
@@ -32,7 +32,7 @@ const createReport = async (req, res) => {
   }
 };
 
-// -------------------- GET ALL REPORTS (Admin + Manager) --------------------
+// GET ALL REPORTS (Admin + Manager)
 const getReports = async (req, res) => {
   try {
     const user = req.user;
@@ -49,7 +49,7 @@ const getReports = async (req, res) => {
   }
 };
 
-// -------------------- GET REPORT BY ID (Admin + Manager) --------------------
+//GET REPORT BY ID (Admin + Manager) 
 const getReportById = async (req, res) => {
   try {
     const user = req.user;
@@ -68,7 +68,7 @@ const getReportById = async (req, res) => {
   }
 };
 
-// -------------------- UPDATE REPORT (Admin only) --------------------
+// UPDATE REPORT (Admin only)
 const updateReport = async (req, res) => {
   try {
     const user = req.user;
@@ -94,7 +94,7 @@ const updateReport = async (req, res) => {
   }
 };
 
-// -------------------- DELETE REPORT (Admin only) --------------------
+//DELETE REPORT (Admin only)
 const deleteReport = async (req, res) => {
   try {
     const user = req.user;
@@ -108,7 +108,7 @@ const deleteReport = async (req, res) => {
   }
 };
 
-// -------------------- GENERATE REPORT BY DAY/WEEK/MONTH --------------------
+// GENERATE REPORT BY DAY/WEEK/MONTH 
 const generateReportByCategory = async (req, res) => {
   try {
     const user = req.user;
@@ -142,7 +142,7 @@ const generateReportByCategory = async (req, res) => {
   }
 };
 
-// -------------------- EXPORT REPORT (PDF/Excel with charts, by ID) --------------------
+//EXPORT REPORT (PDF/Excel with charts, by ID)
 const exportReport = async (req, res) => {
   try {
     const user = req.user;
@@ -166,7 +166,7 @@ const exportReport = async (req, res) => {
   }
 };
 
-// -------------------- EXPORT REPORT BY CATEGORY (day/week/month) --------------------
+// EXPORT REPORT BY CATEGORY (day/week/month)
 const exportReportByCategory = async (req, res) => {
   try {
     const user = req.user;
@@ -205,7 +205,7 @@ const exportReportByCategory = async (req, res) => {
   }
 };
 
-// -------------------- COMMON FILE GENERATOR --------------------
+// COMMON FILE GENERATOR 
 async function generateAndSendFile(report, format, res) {
   const fileName = `report_${report.type || report.id}_${Date.now()}`;
   const uploadsDir = path.join(__dirname, '../uploads/reports');

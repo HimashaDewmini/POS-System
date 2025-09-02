@@ -1,9 +1,8 @@
 const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 
-/**
- * Create Setting (only one active setting should exist)
- */
+//Create Setting (only one active setting should exist)
+
 const createSetting = async (req, res) => {
   try {
     const existing = await prisma.setting.findFirst();
@@ -36,9 +35,8 @@ const createSetting = async (req, res) => {
   }
 };
 
-/**
- * Get all settings (for audit/history) OR latest one
- */
+//Get all settings (for audit/history) OR latest one
+
 const getSettings = async (req, res) => {
   try {
     const settings = await prisma.setting.findMany({
@@ -50,9 +48,8 @@ const getSettings = async (req, res) => {
   }
 };
 
-/**
- * Get setting by ID
- */
+//Get setting by ID
+
 const getSettingById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,9 +64,8 @@ const getSettingById = async (req, res) => {
   }
 };
 
-/**
- * Update setting
- */
+//Update setting
+
 const updateSetting = async (req, res) => {
   try {
     const { id } = req.params;
@@ -93,9 +89,8 @@ const updateSetting = async (req, res) => {
   }
 };
 
-/**
- * Delete setting
- */
+//Delete setting
+ 
 const deleteSetting = async (req, res) => {
   try {
     const { id } = req.params;

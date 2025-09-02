@@ -16,8 +16,6 @@ const {
 // Initialize router
 const router = express.Router();
 
-// Routes with authentication and role-based access
-
 // Create Payment - accessible by Admin & Cashier
 router.post(
   '/',
@@ -38,7 +36,7 @@ router.get(
 router.get(
   '/:id',
   authenticateToken,
-  authorizePaymentAccess, // This middleware should allow owner/admin/manager
+  authorizePaymentAccess, 
   getPaymentById
 );
 

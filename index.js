@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// -------------------- Middleware --------------------
+// Middleware 
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -16,10 +16,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Serve static files including PDFs
+// Serve static files including PDFs
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// -------------------- Routers --------------------
+// Routers 
 const categoryRoutes = require('./routers/categoryRoutes');
 const productRoutes = require('./routers/productRoutes');
 const saleRoutes = require('./routers/saleRoutes');
@@ -32,7 +32,7 @@ const userRoutes = require('./routers/userRoutes');
 const promotionRoutes = require('./routers/promotionRoutes'); 
 const paymentRoutes = require('./routers/paymentRoutes');
 const settingRoutes = require('./routers/settingRoutes');
-const offlineTransactionRoutes = require('./routers/offlineTransactionRoutes'); // ✅ Correct middleware used in routes
+const offlineTransactionRoutes = require('./routers/offlineTransactionRoutes'); 
 
 // Mount routes under /api prefix
 app.use('/api/categories', categoryRoutes);
@@ -40,7 +40,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/receipts', receiptRoutes);
-app.use('/api/reports', reportRoutes);   // ✅ reports live here
+app.use('/api/reports', reportRoutes);   
 app.use('/api/roles', roleRoutes);
 app.use('/api/sale-items', saleItemRoutes);
 app.use('/api/users', userRoutes);
@@ -49,7 +49,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/offline-transactions', offlineTransactionRoutes);
 
-// -------------------- Error Handling --------------------
+//  Error Handling 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
@@ -62,8 +62,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// -------------------- Start Server --------------------
+//  Start Server 
 app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-  console.log(`📊 Reports endpoint available at http://localhost:${port}/api/reports`);
+  console.log(` Server running at http://localhost:${port}`);
+  console.log(`Reports endpoint available at http://localhost:${port}/api/reports`);
 });

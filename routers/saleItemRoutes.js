@@ -35,7 +35,7 @@ router.get(
   getSaleItemById
 );
 
-// Update – Cashier allowed only on their own sales; Manager/Admin unrestricted (enforced in controller)
+// Update – Cashier allowed only on their own sales; Manager/Admin unrestricted
 router.put(
   '/:id',
   authenticateToken,
